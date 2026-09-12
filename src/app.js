@@ -77,5 +77,6 @@ try {await openStore(); state=await updateStore(s=>ensureSession(deck,s)); rende
 catch(e) {main.innerHTML='<p>เปิดข้อมูลความคืบหน้าไม่สำเร็จ กรุณาปิดแล้วเปิดแอปอีกครั้ง</p>'; console.error(e);}
 if('serviceWorker' in navigator) {
   const offline=document.querySelector('#offline-status');
-  navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{offline.textContent='พร้อมทบทวนออฟไลน์';}).catch(()=>{offline.textContent='ยังเตรียมออฟไลน์ไม่สำเร็จ โปรดเปิดอีกครั้งเมื่อมีอินเทอร์เน็ต';});
+  navigator.serviceWorker.ready.then(()=>{offline.textContent='พร้อมทบทวนออฟไลน์';});
+  navigator.serviceWorker.register('./sw.js').catch(()=>{if(!navigator.serviceWorker.controller) offline.textContent='ยังเตรียมออฟไลน์ไม่สำเร็จ โปรดเปิดอีกครั้งเมื่อมีอินเทอร์เน็ต';});
 }

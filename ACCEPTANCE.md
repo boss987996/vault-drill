@@ -1,22 +1,32 @@
 # Acceptance evidence
 
-2026-09-12. Status is conservative: Android-only criteria are not claimed passed from a desktop browser.
+2026-09-12. Live URL: https://boss987996.github.io/vault-drill/
 
-| Criterion | Status | Evidence |
+Pass means verified in the stated test environment. Fail (unverified) means the required physical-device check is outstanding, not an observed defect. Full A1-A12 acceptance is not yet complete.
+
+| Criterion | Result | Evidence |
 |---|---|---|
-| A1: home-screen launch to first card under 2 seconds | Pending device verification | Local browser opened directly to interconnected without intermediate UI. Actual Android installed launch needs timing. |
-| A2: full offline session | Pass in local browser; Android check pending | Stopped the local HTTP server, reloaded the cached app, and completed 10 distinct cards / 11 attempts. |
-| A3: close/reopen retains progress | Pass in local browser | Reload after Forgot retained next card, counts, and repeat queue; persistent IndexedDB transaction commits answer and queue together. |
-| A4: Forgot returns in same session | Pass | Browser showed interconnected again after exactly three intervening cards; tests also cover final-card repeat and >40 attempts. |
-| A5: button interval matches scheduling | Pass | 144 preview/persist comparisons across states, grades, eases, intervals; browser new buttons show immediate/immediate/1 day/4 days. |
-| A6: summary, next date, OneDrive export | Pass for UI; OneDrive device share pending | Offline summary showed 10 words, 11 attempts, promoted words, next date, share and download. Actual OneDrive save must be verified on Android. |
-| A7: Thai text in both themes | Pending light verification | Bundled IBM Plex Sans Thai loaded and visually verified in dark. |
-| A8: no horizontal scroll at 360px | Pass for tested states | At innerWidth 360, document scrollWidth 345; dark answer and summary visually inspected. |
-| A9: at most 10 new cards on day one | Pass | Browser session introduced 10, left 66 untouched; tests cover restarting, repeat sessions and Bangkok midnight. |
-| A10: no settings/login/deck selector | Pass | Single-screen implementation contains none. |
-| A11: no vocabulary mutation | Pass | No edit UI or vocabulary write path; IndexedDB and export contain schedule fields only. Source deck SHA-256 d844a8d2b9383d7d9979e54996f505cd75c8cff0799768147ecb8d65d3441f27. |
-| A12: exported JSON schema | Pass in engine test; browser file check pending | Exact Section 6.2 keys and reviewed-only schedule records asserted. |
+| A1: home-screen launch to first card under 2 seconds | Fail (unverified) | Live browser opens directly to the first word; actual Android installed launch timing remains untested. |
+| A2: session with Wi-Fi and mobile data disabled | Fail (unverified on Android) | Browser offline test passed: stopped the local HTTP server, reloaded from Service Worker cache, and completed 10 words / 11 answers. Phone radio-off test remains. |
+| A3: close/reopen retains progress | Pass | Closed live app tab after Forgot, reopened: next card, reviewed count and learning state retained. IndexedDB integration also checks saved repeat queue. |
+| A4: Forgot returns in same session | Pass | Browser showed interconnected after exactly three intervening cards; tests cover final-card repeat and more than 40 attempts. |
+| A5: displayed interval matches actual scheduling | Pass | 144 preview/persist comparisons across states, grades, eases and intervals; live new buttons show immediate/immediate/1 day/4 days. |
+| A6: summary, next date and OneDrive export | Fail (OneDrive save unverified) | Summary and export controls passed browser checks. Real File payload, share, cancellation and download fallback passed integration test. Actual Android share-sheet save to OneDrive remains. |
+| A7: Thai renders in light and dark | Pass | Visually checked bundled IBM Plex Sans Thai in dark answer and light summary. Light iframe uses browser color-scheme inheritance; computed backgrounds match the prescribed tokens. |
+| A8: no horizontal scrolling at 360px | Pass | Tested question, answer and summary. Viewport 360, document scroll width 345; light iframe client/scroll width both 345. Export buttons exceed 44px in both dimensions. |
+| A9: no more than 10 new cards on day one | Pass | Browser session introduced 10 and left 66 untouched; tests cover restarts, multiple sessions and Bangkok midnight. |
+| A10: no settings/login/deck selector | Pass | Source and UI inspection: none present. |
+| A11: no vocabulary modification | Pass | No editing UI or vocabulary writes from app; persistence/export contains scheduling fields only. Source and copied deck SHA-256 both d844a8d2b9383d7d9979e54996f505cd75c8cff0799768147ecb8d65d3441f27. |
+| A12: progress JSON schema | Pass | Actual app download/share handlers generate parseable File payload with exact Section 6.2 keys and reviewed-only schedule records. |
 
-## Owner Android check
+## Tests
 
-Install from the live HTTPS URL; launch from the home-screen icon and time the first card. Turn on airplane mode, review, close/reopen, and finish a session. Test both Android light/dark themes. Share progress.json to OneDrive and confirm the file appears in the book's Learning folder. Set the daily Clock alarm for 08:40 (editable in Clock).
+`npm test`: 13 passing tests, including app handlers with jsdom and fake-indexeddb plus SRS fixtures. Production UI also checked manually through the browser. Simulators do not prove Android OS integration.
+
+## Remaining owner phone check
+
+Install the live HTTPS app in Chrome; launch from its home-screen icon and confirm the first card appears within two seconds. Disable Wi-Fi and mobile data, review, close/reopen, and finish a session. Share progress.json to OneDrive and verify the saved file in the book's Learning folder. Set the native Clock alarm to 08:40 daily; adjust it in Clock whenever needed.
+
+## Technical notes
+
+Notifications remain outside the PWA. Chrome documentation now lists Android File System Access support, so the spec's blanket unsupported statement is outdated; implementation retains the specified Web Share plus download flow. No spec files were changed.
