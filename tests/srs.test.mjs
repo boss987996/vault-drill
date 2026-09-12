@@ -49,15 +49,16 @@ test('A4: forgotten card returns after three others; short tail repeats within s
   while(s.session.queue.length>1)answer(deck,s,2,today);
   const last=s.session.queue[0]; answer(deck,s,0,today); assert.equal(s.session.queue[0],last); answer(deck,s,2,today); assert.equal(s.session.queue.length,0);
 });
-test('approved repeats continue beyond 40 attempts',()=>{
-  const s=ensureSession(deck,initialState(),today); for(let i=0;i<45;i++)answer(deck,s,0,today);
-  assert.equal(s.session.attempts,45); assert.equal(s.session.queue.length,10); assert.equal(s.introduced[today].length,4);
+test('repeats continue beyond 40 attempts with 40 distinct cards',()=>{
+  const s=initialState(); for(const c of deck)s.cards[c.id]=scheduleFields({...c,state:'review'});ensureSession(deck,s,today);
+  while(s.session.queue.length){const id=s.session.queue[0];answer(deck,s,s.session.reviewed.includes(id)?2:0,today);}
+  assert.equal(s.session.attempts,80);assert.equal(s.session.reviewed.length,40);assert.equal(s.reviews.length,80);
 });
-test('A9: daily new limit survives repeat sessions and restarts, resets at Bangkok midnight',()=>{
+test('A14: daily new limit survives repeat sessions and restarts, resets at Bangkok midnight',()=>{
   let s=ensureSession(deck,initialState(),today); while(s.session.queue.length)answer(deck,s,2,today);
-  s=JSON.parse(JSON.stringify(s)); assert.equal(s.introduced[today].length,10); assert.deepEqual(buildQueue(deck,s,today),[]);
+  s=JSON.parse(JSON.stringify(s)); assert.equal(s.introduced[today].length,5); assert.deepEqual(buildQueue(deck,s,today),[]);
   assert.equal(nextDue(deck,s,today),'2026-09-13');
-  const tomorrow=buildQueue(deck,s,'2026-09-13');assert.equal(tomorrow.length,20); assert.deepEqual(tomorrow.slice(10),deck.slice(10,20).map(c=>c.id));
+  const tomorrow=buildQueue(deck,s,'2026-09-13');assert.equal(tomorrow.length,10); assert.deepEqual(tomorrow.slice(5),deck.slice(5,10).map(c=>c.id));
 });
 test('Bangkok boundary, month/year and leap dates',()=>{
   assert.equal(bangkokDay(new Date('2026-09-12T16:59:59Z')),'2026-09-12'); assert.equal(bangkokDay(new Date('2026-09-12T17:00:00Z')),'2026-09-13');
@@ -75,8 +76,8 @@ test('streak counts days rather than attempts and resets after missed day',()=>{
 test('A12: export is exact progress schema, no vocabulary or internal metadata',()=>{
   const s=ensureSession(deck,initialState(),today);answer(deck,s,2,today);
   const p=JSON.parse(JSON.stringify(exportProgress(s,new Date('2026-09-12T14:05:00Z'))));
-  assert.deepEqual(Object.keys(p),['schema_version','updated_at','device','streak','last_studied','history','cards']);
-  assert.equal(p.updated_at,'2026-09-12T21:05:00.000+07:00'); assert.equal(p.schema_version,1);assert.equal(p.device,'android');
+  assert.deepEqual(Object.keys(p),['schema_version','updated_at','device','streak','last_studied','history','cards','reviews']);
+  assert.equal(p.updated_at,'2026-09-12T21:05:00.000+07:00'); assert.equal(p.schema_version,2);assert.equal(p.device,'android');
   assert.deepEqual(Object.keys(p.cards),['v001']); assert.deepEqual(Object.keys(p.cards.v001),['ease','interval','reps','lapses','due','state','last_review']);
   assert.equal(p.cards.v001.due,'2026-09-13');assert.equal(p.history[today],1);
 });

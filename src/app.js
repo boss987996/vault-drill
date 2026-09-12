@@ -1,8 +1,14 @@
 import deckData from './deck.js';
-import {bangkokDay,addDays,grade,cardsWithProgress,ensureSession,answer,nextDue,exportProgress,MATURE_DAYS} from './srs.js';
+import {bangkokDay,addDays,scheduledGrade,cardsWithProgress,ensureSession,answer,nextDue,exportProgress,MATURE_DAYS} from './srs.js';
 import {openStore,updateStore} from './storage.js';
 const deck=deckData.cards, main=document.querySelector('#main'), status=document.querySelector('#status');
 let state, busy=false;
+let shown=null;
+const grade=(card,g,today)=>scheduledGrade(card,g,state.session,today);
+function trackDisplay() {
+  const id=state.session.queue[0], key=id?state.session.day+':'+state.session.attempts+':'+id:null;
+  if(key!==shown?.key) shown=key?{key,at:state.session.revealed?null:performance.now()}:null;
+}
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateLabel=day=>day?new Intl.DateTimeFormat('th-TH',{dateStyle:'long',timeZone:'Asia/Bangkok'}).format(new Date(`${day}T12:00:00+07:00`)):'—';
 const bucket=c=>c.state==='new'?0:c.state==='review'&&c.interval>=MATURE_DAYS?2:1;
@@ -40,7 +46,7 @@ function renderSummary(cards,today) {
 async function mutate(change) {
   if(busy) return; busy=true; status.textContent='';
   main.querySelectorAll('button').forEach(b=>b.disabled=true);
-  try {state=await updateStore(change); render();}
+  try {state=await updateStore(change); render(); trackDisplay();}
   catch(e) {status.textContent='บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง ความคืบหน้าก่อนหน้ายังอยู่'; main.querySelectorAll('button').forEach(b=>b.disabled=false); console.error(e);}
   finally {busy=false;}
 }
@@ -51,7 +57,8 @@ async function reveal() {
 async function submit(g) {
   if(!state?.session.revealed) return;
   const expected=state.session.queue[0], revision=state.revision, day=state.session.day;
-  await mutate(s=>{ensureSession(deck,s); if(day===s.session.day&&s.revision===revision&&s.session.queue[0]===expected&&s.session.revealed) answer(deck,s,g); return s;});
+  const now=new Date(), ms=shown?.at==null?null:performance.now()-shown.at;
+  await mutate(s=>{ensureSession(deck,s); if(day===s.session.day&&s.revision===revision&&s.session.queue[0]===expected&&s.session.revealed) answer(deck,s,g,bangkokDay(now),{now,ms}); return s;});
   window.scrollTo(0,0); main.focus({preventScroll:true});
 }
 function exportFile() {return new File([JSON.stringify(exportProgress(state),null,2)],'progress.json',{type:'application/json'});}
@@ -70,10 +77,10 @@ document.addEventListener('keydown',e=>{
   if((e.code==='Space'||e.key==='Enter')&&!state.session.revealed) {e.preventDefault(); reveal();}
   else if(['1','2','3','4'].includes(e.key)&&state.session.revealed) {e.preventDefault(); submit(Number(e.key)-1);}
 });
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&state&&!busy) mutate(s=>ensureSession(deck,s));});
+document.addEventListener('visibilitychange',()=>{if(shown)shown.at=null;if(document.visibilityState==='visible'&&state&&!busy) mutate(s=>ensureSession(deck,s));});
 // Refresh the queue and labels across Bangkok midnight even if the app stays open.
 setInterval(()=>{if(state&&state.session.day!==bangkokDay()&&!busy) mutate(s=>ensureSession(deck,s));},15000);
-try {await openStore(); state=await updateStore(s=>ensureSession(deck,s)); render();}
+try {await openStore(); state=await updateStore(s=>ensureSession(deck,s)); render(); trackDisplay();}
 catch(e) {main.innerHTML='<p>เปิดข้อมูลความคืบหน้าไม่สำเร็จ กรุณาปิดแล้วเปิดแอปอีกครั้ง</p>'; console.error(e);}
 if('serviceWorker' in navigator) {
   const offline=document.querySelector('#offline-status');

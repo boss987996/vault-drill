@@ -1,0 +1,12 @@
+{
+  "commit": "be58711c54ccc0f823f903bb0dda56f5cf70677c",
+  "grade": "1dbc5aba6bd567d3a2d51dc730718416e5e6041388ce6dc8131cfe22ea7abb79",
+  "share": "b7d8d6aa9037faa6a97390194f92b073ef78f09c6c4044e0fab1daa941051266",
+  "render": "b233d4c2bed0ca60704610a94ceeead2158d8135918f1dd6924f580aede22b19",
+  "files": {
+    "index.html": "3defa8da7078cea7e7b9626ae578e01b8cce64fc5bf12e83a5feb779b4870ecd",
+    "src/style.css": "4d225ffbbc44ad3a49d38ad2198e9f30f207c8a3bbf48f25dc06241a336d8ce3",
+    "manifest.webmanifest": "4da22ab4b2d1b5049d6811f49dbb354d6c4cb06a9b618787b70b8756f56369a8",
+    "data/vocab.json": "d844a8d2b9383d7d9979e54996f505cd75c8cff0799768147ecb8d65d3441f27"
+  }
+}
