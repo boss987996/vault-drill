@@ -29,4 +29,9 @@ Install the live HTTPS app in Chrome; launch from its home-screen icon and confi
 
 ## Technical notes
 
-Notifications remain outside the PWA. Chrome documentation now lists Android File System Access support, so the spec's blanket unsupported statement is outdated; implementation retains the specified Web Share plus download flow. No spec files were changed.
+Notifications remain outside the PWA. Correction to the earlier categorical statement that Section 8.2 was outdated: compatibility sources conflict. Can I Use lists Chrome Android 152 as unsupported, while current MDN browser-compat-data lists showDirectoryPicker, showOpenFilePicker and showSaveFilePicker as added in Chrome Android 132, and Chrome's guide includes Android. Experimental/not-Baseline labels alone do not establish Android non-support. None of these sources proves reliable access to the owner's OneDrive folder. Keep the specified Web Share plus download flow; any future file-picker proposal needs verification on the actual device and storage provider before changing the design. No vault or spec files were changed for this correction.
+
+Sources checked on 2026-09-12:
+- https://caniuse.com/native-filesystem-api
+- https://github.com/mdn/browser-compat-data/blob/main/api/Window.json (showDirectoryPicker, showOpenFilePicker, showSaveFilePicker)
+- https://developer.chrome.com/docs/capabilities/web-apis/file-system-access
